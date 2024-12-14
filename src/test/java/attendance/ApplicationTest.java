@@ -4,6 +4,8 @@ import camp.nextstep.edu.missionutils.test.NsTest;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static camp.nextstep.edu.missionutils.test.Assertions.assertNowTest;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,10 +22,21 @@ class ApplicationTest extends NsTest {
         );
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"alksdfj", "\n", "hihih", "5"})
+    void 잘못된_번호_예외_테스트(String inputs) {
+        assertNowTest(
+                () -> assertThatThrownBy(() -> run(inputs))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("[ERROR] 잘못된 형식을 입력하였습니다."),
+                LocalDate.of(2024, 12, 13).atStartOfDay()
+        );
+    }
+
     @Test
     void 등록되지_않은_닉네임_예외_테스트() {
         assertNowTest(
-            () -> assertThatThrownBy(() -> run("1", "빈봉"))
+            () -> assertThatThrownBy(() -> run("1", "랄랄라"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("[ERROR] 등록되지 않은 닉네임입니다."),
             LocalDate.of(2024, 12, 13).atStartOfDay()
@@ -48,6 +61,16 @@ class ApplicationTest extends NsTest {
                 assertThat(output()).contains("12월 13일 금요일 08:00 (출석)");
             },
             LocalDate.of(2024, 12, 13).atStartOfDay()
+        );
+    }
+
+    @Test
+    void 출석_중복_기능_예외_테스트() {
+        assertNowTest(
+                () -> assertThatThrownBy(() -> run("1", "짱수", "08:00", "1", "짱수"))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("[ERROR] 이미 출석을 확인하였습니다. 필요한 경우 수정 기능을 이용해 주세요."),
+                LocalDate.of(2024, 12, 13).atStartOfDay()
         );
     }
 
